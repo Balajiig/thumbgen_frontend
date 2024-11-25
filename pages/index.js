@@ -13,7 +13,7 @@ const HomePage = () => {
   const handleSearch = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:8000/generate-thumbnail/", {
+      const response = await fetch("https://thumbgen-backend.el.r.appspot.com/process_youtube_url", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
