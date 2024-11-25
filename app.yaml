@@ -1,0 +1,16 @@
+runtime: nodejs18
+env: flex
+
+entrypoint: npm run start
+
+handlers:
+  - url: /_next/static
+    static_dir: .next/static
+  - url: /_next/(.*)
+    static_files: .next/\1
+    upload: .next/(.*)
+  - url: /favicon.ico
+    static_files: public/favicon.ico
+    upload: public/favicon.ico
+  - url: /.* 
+    script: auto
