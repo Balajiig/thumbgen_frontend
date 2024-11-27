@@ -10,15 +10,17 @@ const HomePage = () => {
     setUrl(e.target.value);
   };
 
+  // http://thumbgen-backend.spotnxt.com/process_youtube_url
+
   const handleSearch = async () => {
     setLoading(true);
     try {
-      const response = await fetch("https://thumbgen-backend.el.r.appspot.com/process_youtube_url", {
+      const response = await fetch("http://127.0.0.1:8000/process_youtube_url", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ youtube_url: url }), // Match the FastAPI model
+        body: JSON.stringify({ url: url }), // Match the FastAPI model
       });
   
       if (!response.ok) {
@@ -62,7 +64,7 @@ const HomePage = () => {
       {/* Logo and product name at top-left */}
       <div className="logo-container">
         <img src="images/Asset 273.png" alt="Logo" className="logo" />
-        <h2 className="product-name">Viral Thumbnail Generator</h2>
+        <h2 className="product-name">Spotnxt</h2>
       </div>
 
       <div className="floating-cards">
