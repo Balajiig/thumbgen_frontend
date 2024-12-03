@@ -1,94 +1,122 @@
 import React, { useState } from 'react';
 import Head from 'next/head';
+import Image from 'next/image';
 
 const HomePage = () => {
-  const [url, setUrl] = useState('');
+  const [file, setFile] = useState(null);
   const [thumbnail, setThumbnail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleInputChange = (e) => {
-    setUrl(e.target.value);
+  // Handle drag and drop functionality
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      setFile(files[0]);
+    }
   };
 
-  // http://thumbgen-backend.spotnxt.com/process_youtube_url
+  // Handle file selection
+  const handleFileSelect = (e) => {
+    const files = e.target.files;
+    if (files.length > 0) {
+      setFile(files[0]);
+    }
+  };
 
+  // Handle search and upload
   const handleSearch = async () => {
+    if (!file) {
+      alert('Please upload a video file.');
+      return;
+    }
+
     setLoading(true);
+    setUploadProgress(0);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
     try {
-      const response = await fetch("https://thumbgen-backend.spotnxt.com/process_youtube_url", {
+      const response = await fetch("http://127.0.0.1:8000/process_video_or_url", {
         method: "POST",
+        body: formData,
         headers: {
-          "Content-Type": "application/json",
+          'Accept': 'application/json',
         },
-        body: JSON.stringify({ url: url }), // Match the FastAPI model
       });
-  
+
       if (!response.ok) {
-        throw new Error("Failed to generate thumbnail");
+        throw new Error("Failed to upload video");
       }
-  
-      // Convert response to a Blob (binary data)
-      const imageBlob = await response.blob();
-  
-      // Create an object URL for the image
-      const imageUrl = URL.createObjectURL(imageBlob);
-  
-      setThumbnail(imageUrl); // Set the thumbnail for display
+
+      await response.json(); // Removed unused data variable
+
+      // Assuming you get a thumbnail URL or some other data from FastAPI:
+      setThumbnail('https://via.placeholder.com/480x360.png?text=Thumbnail'); // Example placeholder
+
     } catch (error) {
       alert(error.message);
     } finally {
       setLoading(false);
     }
   };
-  
+
   const downloadImage = () => {
     if (!thumbnail) return;
-  
-    // Trigger download of the image
+
     const link = document.createElement("a");
     link.href = thumbnail;
     link.download = "thumbnail.png"; // Default name for the downloaded image
     link.click();
   };
-  
 
   return (
     <div className="container">
       <Head>
+        <title>Spotnxt - Video Thumbnail Generator</title>
         <link
           href="https://fonts.googleapis.com/css2?family=Social+Act&display=swap"
           rel="stylesheet"
         />
       </Head>
-      
-      {/* Logo and product name at top-left */}
+
       <div className="logo-container">
-        <img src="images/Asset 273.png" alt="Logo" className="logo" />
+        <Image src="/images/Asset 273.png" alt="Logo" className="logo" width={40} height={40} />
         <h2 className="product-name">Spotnxt</h2>
       </div>
 
-      <div className="floating-cards">
-        <div className="card">Paste your YouTube video link</div>
-        <div className="card">Hit & watch the magic happen!</div>
-        <div className="card">Download & Shine </div>
-      </div>
-      <h1 className="title">Paste your YouTube URL below</h1>
-      <div className="search-bar">
+      <h1 className="title">Upload your video, watch the magic happen!</h1>
+
+      <div
+        className="upload-area"
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+      >
+        <p>Drag and drop your video here</p>
         <input
-          type="text"
-          placeholder="Enter YouTube URL"
-          value={url}
-          onChange={handleInputChange}
-          className="input"
+          type="file"
+          onChange={handleFileSelect}
+          className="file-input"
+          accept="video/*"
         />
-        <button onClick={handleSearch} className="button">Generate</button>
       </div>
+
+      {loading && (
+        <div className="progress-container">
+          <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+          <span className="progress-text">{uploadProgress}%</span>
+        </div>
+      )}
+
+      <button onClick={handleSearch} className="generate-button">Generate</button>
 
       {loading && <div className="thumbnail-skeleton"></div>}
 
       {thumbnail && !loading && (
         <div className="thumbnail-box">
-          <img src={thumbnail} alt="YouTube Thumbnail" className="thumbnail" />
+          <Image src={thumbnail} alt="Video Thumbnail" className="thumbnail" width={480} height={360} />
           <button className="download-button" onClick={downloadImage}>
             Download
           </button>
@@ -109,7 +137,6 @@ const HomePage = () => {
           overflow: hidden;
         }
 
-        /* Logo and Product Name */
         .logo-container {
           position: absolute;
           top: 20px;
@@ -128,30 +155,6 @@ const HomePage = () => {
         .product-name {
           font-size: 1.5rem;
           color: #ffffff;
-          font-family: 'Social Act', sans-serif;
-        }
-
-        .floating-cards {
-          display: flex;
-          gap: 1rem;
-          margin-top: 1rem;
-          margin-bottom: 1rem;
-          z-index: 2;
-        }
-
-        .card {
-          padding: 1.5rem;
-          background-color: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 24px;
-          color: #fff;
-          width: 150px;
-          height: 100px;
-          text-align: center;
-          font-size: 1rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
           font-family: 'Social Act', sans-serif;
         }
 
@@ -176,33 +179,40 @@ const HomePage = () => {
           50% { border-color: #FFA500; }
         }
 
-        .search-bar {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          margin-top: 1rem;
-          z-index: 2;
-          width: 60%;
-        }
-
-        .input {
-          padding: 0.75rem 1rem;
-          width: 100%;
-          max-width: 600px;
-          border: none;
+        .upload-area {
+          width: 80%;
+          max-width: 800px;
+          height: 200px;
+          padding: 1rem;
+          border: 1px solid #fff;
           border-radius: 20px;
-          outline: none;
           background-color: #333;
-          color: #FFFFFF;
-          font-size: 1rem;
+          color: #fff;
+          margin: 2rem 0;
+          text-align: center;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          flex-direction: column;
         }
 
-        .input::placeholder {
-          color: #FFFFFF;
+        .upload-area:hover {
+          background-color: #444;
         }
 
-        .button {
+        .upload-area p {
+          margin: 0;
+          font-size: 1.2rem;
+          font-family: 'Social Act', sans-serif;
+        }
+
+        .file-input {
+          display: none;
+        }
+
+        .generate-button {
           padding: 0.75rem 1rem;
           border: none;
           border-radius: 20px;
@@ -212,11 +222,38 @@ const HomePage = () => {
           cursor: pointer;
           transition: background-color 0.3s ease, box-shadow 0.3s ease;
           box-shadow: 0 0 10px rgba(255, 165, 0, 0.5), 0 0 20px rgba(255, 165, 0, 0.5);
+          margin-top: 1rem;
         }
 
-        .button:hover {
+        .generate-button:hover {
           background-color: #ff8c00;
           box-shadow: 0 0 15px rgba(255, 140, 0, 0.6), 0 0 30px rgba(255, 140, 0, 0.6);
+        }
+
+        .progress-container {
+          width: 80%;
+          max-width: 800px;
+          margin-top: 1rem;
+          height: 20px;
+          background-color: #444;
+          border-radius: 20px;
+          overflow: hidden;
+          position: relative;
+        }
+
+        .progress-bar {
+          height: 100%;
+          background-color: #FFA500;
+          transition: width 0.3s ease;
+        }
+
+        .progress-text {
+          position: absolute;
+          top: 0;
+          right: 10px;
+          color: #fff;
+          font-weight: bold;
+          font-size: 1rem;
         }
 
         .thumbnail-skeleton {
@@ -253,25 +290,21 @@ const HomePage = () => {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          border-radius: 24px;
         }
 
         .download-button {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          padding: 0.25rem 0.5rem;
+          margin-top: 1rem;
+          padding: 0.5rem 1rem;
           border: none;
-          border-radius: 12px;
-          background-color: #333;
-          color: #ffffff;
-          font-size: 0.9rem;
+          background-color: #FFA500;
+          color: #121212;
+          border-radius: 20px;
           cursor: pointer;
           transition: background-color 0.3s ease;
         }
 
         .download-button:hover {
-          background-color: #444;
+          background-color: #ff8c00;
         }
       `}</style>
     </div>
