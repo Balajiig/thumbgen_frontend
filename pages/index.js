@@ -123,7 +123,7 @@ const HomePage = () => {
           className="logo" 
           style={{ width: '40px', height: 'auto' }} 
         />
-        <h2 className="product-name">Spotnxt</h2>
+        <h2 className="product-name">SpotNxt</h2>
       </div>
 
       <h1 className="title">Upload your video, watch the magic happen!</h1>
@@ -139,15 +139,14 @@ const HomePage = () => {
         onDragLeave={handleDragLeave}
         onClick={() => document.getElementById('file-input').click()}
       >
-        <p>Drag and drop your video here</p>
-        <div className="upload-button" onClick={() => document.getElementById('file-input').click()}>
         <img
-          src="/icon/upload.png" // Replace with your icon path
-          alt="Upload Icon"
-          className="upload-icon"
-        />
-        <span className="upload-text">Upload File</span>
-      </div>
+        src="/icon/uploadgreen.png" // Replace with your video file icon path
+        alt="Upload Icon"
+        className="upload-icon"
+      />
+      <p className="upload-text">Drag & drop your file here or choose files</p>
+
+      
         <input
           id="file-input"
           type="file"
@@ -220,12 +219,6 @@ const HomePage = () => {
           z-index: 2;
         }
 
-        .product-name {
-          font-size: 1.5rem;
-          color: #ffffff;
-          font-family: 'Social Act', sans-serif;
-        }
-
         .title {
           font-size: 2rem;
           color: #ffffff;
@@ -246,26 +239,54 @@ const HomePage = () => {
           0%, 100% { border-color: transparent; }
           50% { border-color: #FFA500; }
         }
-
-        .upload-area {
-          width: 80%;
-          max-width: 800px;
+        .product-name {
+          font-family: 'Intim', sans-serif; /* Apply Intim font */
+          font-size: 1.5rem;
+          color: #ffffff;
+          font-weight: bold;
+        }
+       .upload-area {
+          width: 60%; /* Adjusted width */
+          max-width: 600px; /* Optional: Limit max width */
           height: 200px;
           padding: 1rem;
-          border: 1px solid #fff;
           border-radius: 20px;
           background-color: #333;
           color: #fff;
           margin: 2rem 0;
           text-align: center;
           cursor: pointer;
-          transition: background-color 0.3s ease;
           display: flex;
           justify-content: center;
           align-items: center;
           flex-direction: column;
-          transition: background-color 0.3s ease, transform 0.3s ease;
+          transition: background-color 0.3s ease;
+          position: relative;
         }
+
+        .upload-area .upload-icon {
+          width: 80px; /* Adjust size of the icon */
+          height: 80px;
+          margin-bottom: 30px; /* Space between icon and text */
+        }
+
+        .upload-area .upload-text {
+          font-size: 1.2rem;
+          font-weight: bold; /* Make the text bold */
+        }
+
+        /* Hidden file input, but still clickable */
+        .upload-area .file-input {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          opacity: 0;
+          cursor: pointer;
+        }
+
+
 
         .upload-area.dragging {
           background-color: #444;
@@ -281,34 +302,7 @@ const HomePage = () => {
           margin: 0;
           font-size: 1.2rem;
         }
-         .upload-button {
-          display: flex;
-          align-items: center;
-          gap: 5px; /* Space between icon and text */
-          background-color: #fff; /* White background */
-          color: #333; /* Neutral text color */
-          padding: 0.2rem 0.3rem; /* Vertical and horizontal padding */
-          border: 1px solid rgba(0, 0, 0, 0.1); /* Subtle border */
-          border-radius: 40px; /* Rounded edges */
-          cursor: pointer;
-          transition: background-color 0.3s ease, box-shadow 0.3s ease;
-          box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-          font-size: 1.2rem; /* Text size */
-          margin-top: 20px; 
         
-        }
-
-        .upload-button:hover {
-          background-color: rgba(255, 255, 255, 0.9); /* Hover effect */
-          box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
-        }
-
-        .upload-icon {
-          width: 40px; /* Icon size */
-          height: 40px;
-          border-radius: 50%; /* Circular icon */
-          background-color: #ccc; /* Placeholder background for the icon */
-        }
 
         .file-input {
           display: none;
