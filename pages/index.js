@@ -129,8 +129,8 @@ const HomePage = () => {
           className="logo" 
           style={{ width: '40px', height: 'auto' }} 
         />
-        <h2 className="product-name">SpotNxt</h2>
-        <span className="beta-version">Beta</span> 
+        <h2 className="product-name">Spot Nxt</h2>
+        <span className="beta-version">βeta</span> 
       </div>
 
       <h1 className="title">Upload your video, watch the magic happen!</h1>
