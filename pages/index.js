@@ -108,6 +108,12 @@ const HomePage = () => {
     link.click();
   };
 
+   // Cancel file selection
+   const cancelFileSelection = () => {
+    setFile(null); // Reset the file state
+};
+
+
   return (
     <div
       className="container"
@@ -156,13 +162,24 @@ const HomePage = () => {
         />
       </div>
 
-      {/* Show selected file name */}
+      {/* File Information Bar */}
       {file && !loading && (
-        <div className="file-info">
-          <p>Selected file: {file.name}</p>
-        </div>
+          <div className="file-info-bar">
+              <img src="/icon/play.png" alt="Video Icon" className="file-icon" />
+              <div className="highlight">
+                  <div className="file-details">
+                      <p className="file-name">{file.name}</p>
+                      <p className="file-size">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                  </div>
+                  <button className="cancel-button" onClick={cancelFileSelection} title="Cancel your selected file">
+                      &times;
+                  </button>
+              </div>
+              <button className="generate-button" onClick={handleSearch} title="Generate Thumbnail">
+            ↑ {/* Generate button */}
+        </button>
+          </div>
       )}
-
       {/* Show Upload Progress */}
       {loading && (
         <div className="progress-container">
@@ -171,10 +188,7 @@ const HomePage = () => {
         </div>
       )}
 
-      {/* Generate Thumbnail Button */}
-      <button onClick={handleSearch} className="generate-button">
-        {loading ? 'Processing...' : 'Generate'}
-      </button>
+
 
       {/* Show Thumbnail */}
       {thumbnail && !loading && (
@@ -207,6 +221,7 @@ const HomePage = () => {
           text-align: center;
           position: relative;
           overflow: hidden;
+          background-color: #121212;
         }
 
         .logo-container {
@@ -250,8 +265,9 @@ const HomePage = () => {
           max-width: 600px; /* Optional: Limit max width */
           height: 200px;
           padding: 1rem;
-          border-radius: 20px;
+          border-radius: 15px;
           background-color: #333;
+          background-color: #252525;
           color: #fff;
           margin: 2rem 0;
           text-align: center;
@@ -302,11 +318,104 @@ const HomePage = () => {
           margin: 0;
           font-size: 1.2rem;
         }
-        
+      
+       .file-info-bar {
+                    width: 60%; 
+                    max-width: 600px; 
+                    height: 60px; 
+                    background-color: #252525; /* Same color as upload area */
+                    display: flex; 
+                    align-items: center; 
+                    padding: 0.5rem; 
+                    margin-top: 10px; 
+                    margin-bottom:10px;
+                    border-radius: 15px; 
+                    color: #fff; 
+                }
 
+                .file-icon {
+                    width: 30px; 
+                    height: 30px; 
+                    margin-right: 20px; 
+                    margin-left: 20px;
+                }
+                .highlight {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    background-color: #444;
+                    border-radius: 10px;
+                    margin-top: 1.5rem;
+                    margin-bottom: 1.5rem;
+                  
+                }
+
+               .file-details {
+                  display: flex;
+                  justify-content: space-between; /* Ensures filename and size stay on the same line */
+                  align-items: center; /* Vertically aligns them */
+                  width: 100%; /* Ensures the flexbox spans the full width of the container */
+                  padding: 0 10px; /* Optional: Adds spacing */
+                }
+
+                .file-name {
+                  font-weight: bold;
+                  font-size: 1rem;
+                  color: white;
+                  flex: 1; /* Allows the filename to take up available space */
+                  overflow: hidden; /* Ensures long filenames don’t overflow */
+                  text-overflow: ellipsis; /* Adds '...' for long filenames */
+                  white-space: nowrap; /* Prevents wrapping to the next line */
+                }
+
+                .file-size {
+                  font-size: 0.9rem;
+                  color: #bbb;
+                  margin-left: 10px; /* Adds spacing between filename and size */
+                }
+
+               .cancel-button { /* Cancel button style */
+                   background-color:#252525; /* Transparent button with same background as info bar */
+                   border-radius:50%; /* Circular button */
+                   border:none; /* No border */
+                   color:white; /* White color for cancel sign */
+                   font-size:1rem; /* Size of cancel sign */
+                   cursor:pointer; /* Pointer cursor */
+                   width:30px; /* Width of circular button */
+                   height:30px; /* Height of circular button */
+                   display:flex; /* Flexbox for centering content inside button */
+                   align-items:center; /* Center vertically */
+                   justify-content:center; /* Center horizontally */
+                   margin-left:.5rem; /* Space between name and cancel button */
+                   margin-right: .5rem;
+               }
+            
+               .cancel-button:hover {
+                   background-color:red; /* Change to red on hover for visibility */
+               }
         .file-input {
           display: none;
         }
+
+         .generate-button { /* Generate button style */
+                   background-color:#28a745; /* Green circular button */
+                   border:none; /* No border */
+                   color:white; /* White color for arrow sign */
+                   font-size:2.5rem; /* Size of arrow sign */
+                   cursor:pointer; /* Pointer cursor */
+                   width:40px; /* Width of circular button */
+                   height:40px; /* Height of circular button */
+                   border-radius:50%; /* Circular shape */
+                   display:flex; /* Flexbox for centering content inside button */
+                   align-items:center; /* Center vertically */
+                   justify-content:center; /* Center horizontally */
+                   margin-left:auto; /* Push to the right end of info bar */  
+                   margin-right: .0rem;
+               }
+
+               .generate-button:hover {
+                   background-color:#218838; /* Darker green on hover */
+               }
 
         .progress-container {
           width: 80%;
@@ -328,20 +437,7 @@ const HomePage = () => {
           margin-top: 0.5rem;
         }
 
-        .generate-button {
-          background-color: #FFA500;
-          color: #fff;
-          border: none;
-          padding: 1rem 2rem;
-          font-size: 1.2rem;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-
-        .generate-button:hover {
-          background-color: #cc8400;
-        }
+      
 
         .thumbnail-box {
           display: flex;
