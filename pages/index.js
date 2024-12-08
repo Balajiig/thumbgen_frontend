@@ -124,12 +124,13 @@ const HomePage = () => {
     >
       <div className="logo-container">
         <img 
-          src="/images/Asset 273.png" 
+          src="/images/logosn.webp" 
           alt="Logo" 
           className="logo" 
           style={{ width: '40px', height: 'auto' }} 
         />
         <h2 className="product-name">SpotNxt</h2>
+        <span className="beta-version">Beta</span> 
       </div>
 
       <h1 className="title">Upload your video, watch the magic happen!</h1>
@@ -232,6 +233,12 @@ const HomePage = () => {
           align-items: center;
           gap: 10px;
           z-index: 2;
+        }
+          .beta-version {
+          font-size: 0.9rem;
+          color: #ffcc00; /* Yellow color for Beta */
+          margin-top: 0.5rem; /* Space between product name and beta version */
+          font-weight: bold;
         }
 
         .title {
@@ -401,7 +408,7 @@ const HomePage = () => {
                    background-color:#28a745; /* Green circular button */
                    border:none; /* No border */
                    color:white; /* White color for arrow sign */
-                   font-size:2.5rem; /* Size of arrow sign */
+                   font-size:2rem; /* Size of arrow sign */
                    cursor:pointer; /* Pointer cursor */
                    width:40px; /* Width of circular button */
                    height:40px; /* Height of circular button */
