@@ -12,13 +12,13 @@ const HomePage = () => {
     const validVideoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'webm'];
     const fileName = file.name.toLowerCase();
     const fileExtension = fileName.split('.').pop();
-
-    // Validate MIME type or file extension
+  
     if (file.type.startsWith('video/') || validVideoExtensions.includes(fileExtension)) {
       return true;
     }
     return false;
   };
+  
 
   // Handle file selection via input
   const handleFileSelect = (e) => {
@@ -70,26 +70,26 @@ const HomePage = () => {
       alert('Please upload a video file.');
       return;
     }
-
+  
     setLoading(true);
     setUploadProgress(0);
-
+  
     const formData = new FormData();
     formData.append('video', file); // 'video' should match the backend parameter name
-
+  
     try {
-      const response = await fetch("http://127.0.0.1:8000/analyze", {
+      const response = await fetch("https://thumbgen-backend.spotnxt.com/generate-thumbnail/", {
         method: "POST",
         body: formData,
         headers: { 
           'Accept': 'application/json',
         },
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to process video");
       }
-
+  
       const data = await response.json();
       setThumbnail(data.thumbnail_url || 'https://via.placeholder.com/480x360.png?text=Thumbnail'); // Placeholder for missing URL
     } catch (error) {
@@ -98,6 +98,7 @@ const HomePage = () => {
       setLoading(false);
     }
   };
+  
 
   // Download generated thumbnail
   const downloadImage = () => {
@@ -272,7 +273,7 @@ const HomePage = () => {
           max-width: 600px; /* Optional: Limit max width */
           height: 200px;
           padding: 1rem;
-          border-radius: 15px;
+          border-radius: 12px;
           background-color: #333;
           background-color: #252525;
           color: #fff;
@@ -313,7 +314,8 @@ const HomePage = () => {
 
         .upload-area.dragging {
           background-color: #444;
-          border-color: #FFA500;
+          border-color: #28a745;
+          border: 2px dashed #28a745;
           transform: scale(0.95);
         }
 
@@ -336,7 +338,7 @@ const HomePage = () => {
                     padding: 0.5rem; 
                     margin-top: 10px; 
                     margin-bottom:10px;
-                    border-radius: 15px; 
+                    border-radius: 12px; 
                     color: #fff; 
                 }
 
@@ -352,8 +354,8 @@ const HomePage = () => {
                     justify-content: space-between;
                     background-color: #444;
                     border-radius: 10px;
-                    margin-top: 1.5rem;
-                    margin-bottom: 1.5rem;
+                    margin-top: 1rem;
+                    margin-bottom: 1rem;
                   
                 }
 
@@ -388,8 +390,8 @@ const HomePage = () => {
                    color:white; /* White color for cancel sign */
                    font-size:1rem; /* Size of cancel sign */
                    cursor:pointer; /* Pointer cursor */
-                   width:30px; /* Width of circular button */
-                   height:30px; /* Height of circular button */
+                   width:25px; /* Width of circular button */
+                   height:25px; /* Height of circular button */
                    display:flex; /* Flexbox for centering content inside button */
                    align-items:center; /* Center vertically */
                    justify-content:center; /* Center horizontally */
