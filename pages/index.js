@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRouter } from 'next/router';
 
 const HomePage = () => {
   const [file, setFile] = useState(null); // Selected file
@@ -6,6 +7,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(false); // Loading state
   const [uploadProgress, setUploadProgress] = useState(0); // Upload progress
   const [isDragging, setIsDragging] = useState(false); // Dragging state
+  const router = useRouter(); 
 
   // Handle file validation (only video files)
   const handleFileValidation = (file) => {
@@ -19,7 +21,6 @@ const HomePage = () => {
     return false;
   };
   
-
   // Handle file selection via input
   const handleFileSelect = (e) => {
     const files = e.target.files;
@@ -67,38 +68,47 @@ const HomePage = () => {
   // Handle video upload and thumbnail generation
   const handleSearch = async () => {
     if (!file) {
-      alert('Please upload a video file.');
-      return;
+        alert('Please upload a video file.');
+        return;
     }
-  
     setLoading(true);
-    setUploadProgress(0);
-  
+    setUploadProgress(0); // Reset progress at start
     const formData = new FormData();
-    formData.append('video', file); // 'video' should match the backend parameter name
-  
+    formData.append('video', file);
+
     try {
-      const response = await fetch("https://thumbgen-backend.spotnxt.com/generate-thumbnail/", {
-        method: "POST",
-        body: formData,
-        headers: { 
-          'Accept': 'application/json',
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to process video");
-      }
-  
-      const data = await response.json();
-      setThumbnail(data.thumbnail_url || 'https://via.placeholder.com/480x360.png?text=Thumbnail'); // Placeholder for missing URL
+        const response = await fetch("https://thumbgen-backend.spotnxt.com/generate-thumbnail/", {
+            method: "POST",
+            body: formData,
+        });
+        
+        if (!response.ok) {
+            throw new Error("Failed to process video");
+        }
+
+        // Handle binary data for the thumbnail
+        const contentType = response.headers.get("Content-Type");
+        if (contentType && contentType.includes("image/")) {
+            const blob = await response.blob(); // Get the binary data
+            const thumbnailURL = URL.createObjectURL(blob); // Create a URL for the image
+            setThumbnail(thumbnailURL);
+        } else {
+            const data = await response.json(); // Parse JSON if content is not binary
+            setThumbnail(data.thumbnail_url || 'https://via.placeholder.com/480x360.png?text=Thumbnail');
+        }
+
+        // Simulate progress 
+        for (let i = 0; i <= 100; i += 10) {
+            setUploadProgress(i);
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        setLoading(false);
     } catch (error) {
-      alert(`Error: ${error.message}`);
-    } finally {
-      setLoading(false);
+        alert(`Error: ${error.message}`);
+        setLoading(false);
     }
-  };
-  
+};
 
   // Download generated thumbnail
   const downloadImage = () => {
@@ -112,8 +122,14 @@ const HomePage = () => {
    // Cancel file selection
    const cancelFileSelection = () => {
     setFile(null); // Reset the file state
-};
+    setThumbnail(''); // Clear thumbnail
+    setUploadProgress(0); // Reset progress
+  };
 
+   // Function to navigate to the "Coming Soon" page
+   const editImage = () => {
+    router.push('/edit'); // Navigate to the new page
+  };
 
   return (
     <div
@@ -137,8 +153,6 @@ const HomePage = () => {
       <h1 className="title">Upload your video, watch the magic happen!</h1>
 
       {/* Drag-and-Drop Area */}
-
-
       <div
         className={`upload-area ${isDragging ? 'dragging' : ''}`}
         onDrop={handleDrop}
@@ -148,13 +162,12 @@ const HomePage = () => {
         onClick={() => document.getElementById('file-input').click()}
       >
         <img
-        src="/icon/uploadgreen.png" // Replace with your video file icon path
-        alt="Upload Icon"
-        className="upload-icon"
-      />
-      <p className="upload-text">Drag & drop your file here or choose files</p>
-
-      
+          src="/icon/uploadgreen.png"
+          alt="Upload Icon"
+          className="upload-icon"
+        />
+        <p className="upload-text">Drag & drop your file here or choose files</p>
+        
         <input
           id="file-input"
           type="file"
@@ -164,52 +177,56 @@ const HomePage = () => {
         />
       </div>
 
-      {/* File Information Bar */}
-      {file && !loading && (
-          <div className="file-info-bar">
+      {/* File Information Bar or Progress Bar */}
+      {!thumbnail && (
+        loading && uploadProgress < 100 ? (
+          <div className="progress-container glassmorphism">
+            <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+            <span className="progress-text">{uploadProgress}%</span>
+          </div>
+        ) : (
+          file && (
+            <div className="file-info-bar">
               <img src="/icon/play.png" alt="Video Icon" className="file-icon" />
               <div className="highlight">
-                  <div className="file-details">
-                      <p className="file-name">{file.name}</p>
-                      <p className="file-size">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
-                  </div>
-                  <button className="cancel-button" onClick={cancelFileSelection} title="Cancel your selected file">
-                      &times;
-                  </button>
+                <div className="file-details">
+                  <p className="file-name">{file.name}</p>
+                  <p className="file-size">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                </div>
+                <button className="cancel-button" onClick={cancelFileSelection} title="Cancel your selected file"> &times; </button>
               </div>
-              <button className="generate-button" onClick={handleSearch} title="Generate Thumbnail">
-            ↑ {/* Generate button */}
-        </button>
+              <button className="generate-button" onClick={handleSearch} title="Generate Thumbnail"> ↑ </button>
+            </div>
+          )
+        )
+      )}
+
+      {/* Show Thumbnail after Upload Completes */}
+      {thumbnail && (
+          <div className="thumbnail-box">
+            <div className="button-container">
+            <button className="icon-button glassmorphism" onClick={downloadImage}>
+              <img src="/icon/download.png" alt="Download" className="icon" />
+            </button>
+            <button className="icon-button glassmorphism" onClick={editImage}>
+              <img src="/icon/edit.png" alt="Edit" className="icon" />
+            </button>
+            </div>
+            <img 
+              src={thumbnail} 
+              alt="Generated Thumbnail" 
+              className="thumbnail" 
+              style={{ 
+                width: '300px', 
+                height: '300px', 
+                borderRadius: '12px', 
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.2)' 
+              }} 
+            />
           </div>
-      )}
-      {/* Show Upload Progress */}
-      {loading && (
-        <div className="progress-container">
-          <div className="progress-bar" style={{ width: `${uploadProgress}%` }}></div>
-          <span className="progress-text">{uploadProgress}%</span>
-        </div>
-      )}
+        )}
 
 
-
-      {/* Show Thumbnail */}
-      {thumbnail && !loading && (
-        <div className="thumbnail-box">
-          <img 
-            src={thumbnail} 
-            alt="Video Thumbnail" 
-            className="thumbnail" 
-            style={{ 
-              maxWidth: '480px', 
-              height: 'auto', 
-              borderRadius: '8px' 
-            }} 
-          />
-          <button className="download-button" onClick={downloadImage}>
-            Download
-          </button>
-        </div>
-      )}
 
       <style jsx>{`
         .container {
@@ -329,145 +346,180 @@ const HomePage = () => {
         }
       
        .file-info-bar {
-                    width: 60%; 
-                    max-width: 600px; 
-                    height: 60px; 
-                    background-color: #252525; /* Same color as upload area */
-                    display: flex; 
-                    align-items: center; 
-                    padding: 0.5rem; 
-                    margin-top: 10px; 
-                    margin-bottom:10px;
-                    border-radius: 12px; 
-                    color: #fff; 
-                }
+            width: 60%; 
+            max-width: 600px; 
+            height: 60px; 
+            background-color: #252525; /* Same color as upload area */
+            display: flex; 
+            align-items: center; 
+            padding: 0.5rem; 
+            margin-top: 10px; 
+            margin-bottom:10px;
+            border-radius: 12px; 
+            color: #fff; 
+        }
 
-                .file-icon {
-                    width: 30px; 
-                    height: 30px; 
-                    margin-right: 20px; 
-                    margin-left: 20px;
-                }
-                .highlight {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    background-color: #444;
-                    border-radius: 10px;
-                    margin-top: 1rem;
-                    margin-bottom: 1rem;
-                  
-                }
+        .file-icon {
+            width: 30px; 
+            height: 30px; 
+            margin-right: 20px; 
+            margin-left: 20px;
+        }
+        .highlight {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #444;
+            border-radius: 10px;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+          
+        }
 
-               .file-details {
-                  display: flex;
-                  justify-content: space-between; /* Ensures filename and size stay on the same line */
-                  align-items: center; /* Vertically aligns them */
-                  width: 100%; /* Ensures the flexbox spans the full width of the container */
-                  padding: 0 10px; /* Optional: Adds spacing */
-                }
+        .file-details {
+          display: flex;
+          justify-content: space-between; /* Ensures filename and size stay on the same line */
+          align-items: center; /* Vertically aligns them */
+          width: 100%; /* Ensures the flexbox spans the full width of the container */
+          padding: 0 10px; /* Optional: Adds spacing */
+        }
 
-                .file-name {
-                  font-weight: bold;
-                  font-size: 1rem;
-                  color: white;
-                  flex: 1; /* Allows the filename to take up available space */
-                  overflow: hidden; /* Ensures long filenames don’t overflow */
-                  text-overflow: ellipsis; /* Adds '...' for long filenames */
-                  white-space: nowrap; /* Prevents wrapping to the next line */
-                }
+        .file-name {
+          font-weight: bold;
+          font-size: 1rem;
+          color: white;
+          flex: 1; /* Allows the filename to take up available space */
+          overflow: hidden; /* Ensures long filenames don’t overflow */
+          text-overflow: ellipsis; /* Adds '...' for long filenames */
+          white-space: nowrap; /* Prevents wrapping to the next line */
+        }
 
-                .file-size {
-                  font-size: 0.9rem;
-                  color: #bbb;
-                  margin-left: 10px; /* Adds spacing between filename and size */
-                }
+        .file-size {
+          font-size: 0.9rem;
+          color: #bbb;
+          margin-left: 10px; /* Adds spacing between filename and size */
+        }
 
-               .cancel-button { /* Cancel button style */
-                   background-color:#252525; /* Transparent button with same background as info bar */
-                   border-radius:50%; /* Circular button */
-                   border:none; /* No border */
-                   color:white; /* White color for cancel sign */
-                   font-size:1rem; /* Size of cancel sign */
-                   cursor:pointer; /* Pointer cursor */
-                   width:25px; /* Width of circular button */
-                   height:25px; /* Height of circular button */
-                   display:flex; /* Flexbox for centering content inside button */
-                   align-items:center; /* Center vertically */
-                   justify-content:center; /* Center horizontally */
-                   margin-left:.5rem; /* Space between name and cancel button */
-                   margin-right: .5rem;
-               }
-            
-               .cancel-button:hover {
-                   background-color:red; /* Change to red on hover for visibility */
-               }
+        .cancel-button { /* Cancel button style */
+            background-color:#252525; /* Transparent button with same background as info bar */
+            border-radius:50%; /* Circular button */
+            border:none; /* No border */
+            color:white; /* White color for cancel sign */
+            font-size:1rem; /* Size of cancel sign */
+            cursor:pointer; /* Pointer cursor */
+            width:25px; /* Width of circular button */
+            height:25px; /* Height of circular button */
+            display:flex; /* Flexbox for centering content inside button */
+            align-items:center; /* Center vertically */
+            justify-content:center; /* Center horizontally */
+            margin-left:.5rem; /* Space between name and cancel button */
+            margin-right: .5rem;
+        }
+    
+        .cancel-button:hover {
+            background-color:red; /* Change to red on hover for visibility */
+        }
         .file-input {
           display: none;
         }
 
          .generate-button { /* Generate button style */
-                   background-color:#28a745; /* Green circular button */
-                   border:none; /* No border */
-                   color:white; /* White color for arrow sign */
-                   font-size:2rem; /* Size of arrow sign */
-                   cursor:pointer; /* Pointer cursor */
-                   width:40px; /* Width of circular button */
-                   height:40px; /* Height of circular button */
-                   border-radius:50%; /* Circular shape */
-                   display:flex; /* Flexbox for centering content inside button */
-                   align-items:center; /* Center vertically */
-                   justify-content:center; /* Center horizontally */
-                   margin-left:auto; /* Push to the right end of info bar */  
-                   margin-right: .0rem;
-               }
+              background-color:#28a745; /* Green circular button */
+              border:none; /* No border */
+              color:white; /* White color for arrow sign */
+              font-size:2rem; /* Size of arrow sign */
+              cursor:pointer; /* Pointer cursor */
+              width:40px; /* Width of circular button */
+              height:40px; /* Height of circular button */
+              border-radius:50%; /* Circular shape */
+              display:flex; /* Flexbox for centering content inside button */
+              align-items:center; /* Center vertically */
+              justify-content:center; /* Center horizontally */
+              margin-left:auto; /* Push to the right end of info bar */  
+              margin-right: .0rem;
+          }
 
-               .generate-button:hover {
-                   background-color:#218838; /* Darker green on hover */
-               }
+            .generate-button:hover {
+                background-color:#218838; /* Darker green on hover */
+            }
 
-        .progress-container {
-          width: 80%;
-          max-width: 800px;
-          height: 10px;
-          background-color: #555;
-          margin: 1rem 0;
-        }
+          .progress-container {
+              width: 60%;
+              max-width: 600px;
+              height: 60px; /* Adjust height for visibility */
+              background: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+              backdrop-filter: blur(1px); /* Blur background */
+              border-radius: 50px; /* Rounded corners */
+              margin: 1rem auto; /* Centered */
+              position: relative;
+          }
 
-        .progress-bar {
-          height: 100%;
-          background-color: #FFA500;
-          width: 0;
-        }
+          .progress-bar {
+              height: 100%;
+              border-radius: 50px; /* Rounded corners */
+              background-color: #28a745; /* Orange color for progress */
+          }
 
-        .progress-text {
-          color: #fff;
-          font-size: 1.2rem;
-          margin-top: 0.5rem;
-        }
-
+          .progress-text {
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              color: #fff;
+              font-size: 1.5rem; /* Adjust font size */
+          }
       
+
+        .icon-button {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          border: none;
+          padding: 10px;
+          cursor: pointer;
+          backdrop-filter: blur(10px);
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s ease;
+        }
+
+        .icon-button:hover {
+          transform: scale(1.1);
+        }
+
+        .icon-button .icon {
+          width: 15px;
+          height: 15px;
+        }
+
+        .button-container {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          display: flex;
+          gap: 10px;
+        }
 
         .thumbnail-box {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 1rem;
+          justify-content: center;
+          margin-top: 20px;
+          background-color: #1e1e1e;
+          padding: 16px;
+          border-radius: 12px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+          max-width: 300px;
+          margin: 0 auto;
+          position: relative;
         }
 
-        .download-button {
-          background-color: #FFA500;
-          color: #fff;
-          border: none;
-          padding: 0.5rem 1rem;
-          font-size: 1rem;
-          border-radius: 5px;
-          cursor: pointer;
+        .thumbnail {
+          border-radius: 12px;
+          max-width: 100%;
+          height: auto;
+          object-fit: cover;
         }
 
-        .download-button:hover {
-          background-color: #cc8400;
-        }
       `}</style>
     </div>
   );
