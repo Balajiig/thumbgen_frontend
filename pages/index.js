@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 
+
 const HomePage = () => {
   const [file, setFile] = useState(null); // Selected file
   const [thumbnail, setThumbnail] = useState(''); // Thumbnail URL
@@ -236,7 +237,7 @@ const HomePage = () => {
           justify-content: center;
           min-height: 100vh;
           background-color: #000;
-          color: #fff;
+          color: #121212;
           text-align: center;
           position: relative;
           overflow: hidden;
